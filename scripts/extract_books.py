@@ -1,0 +1,156 @@
+"""
+Extract BookEvent sequences from compressed .jsonl.zst publish files
+and output JSON files suitable for the web-sdk DevAuthenticate mock RGS.
+
+Usage:
+    python scripts/extract_books.py
+
+Output:
+    mock_books_base.json  — ~500 base-game books with weights
+    mock_books_bonus.json — ~100 bonus-game books with weights
+"""
+
+import csv
+import io
+import json
+import os
+import sys
+
+try:
+    import zstandard as zstd
+except ImportError:
+    sys.exit("zstandard not installed. Run: pip install zstandard")
+
+# ── Config ──────────────────────────────────────────────────────────
+GAME_DIR = os.path.join(os.path.dirname(__file__), "..", "games", "dungeon_quest")
+PUBLISH_DIR = os.path.join(GAME_DIR, "library", "publish_files")
+
+# How many books to extract per mode
+EXTRACT_COUNTS = {"base": 500, "bonus": 100}
+
+# Output directory (web-sdk static/mockBooks — served at runtime, no bundler issues)
+WEB_SDK_MOCK_DIR = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "..",
+    "web-sdk",
+    "apps",
+    "dungeon-quest",
+    "static",
+    "mockBooks",
+)
+
+
+def read_weights(csv_path):
+    """Read lookup table CSV (no header row).
+    Columns: simulation_id, round_probability, payout_multiplier
+    Returns dict: {sim_id: round_probability}
+    """
+    weights = {}
+    with open(csv_path, "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            sim_id = int(row[0])
+            probability = int(row[1])
+            weights[sim_id] = probability
+    return weights
+
+
+def read_books(zst_path, max_count):
+    """Decompress .jsonl.zst and yield up to max_count parsed book dicts."""
+    decompressor = zstd.ZstdDecompressor()
+    count = 0
+    with open(zst_path, "rb") as f:
+        with decompressor.stream_reader(f) as reader:
+            txt_stream = io.TextIOWrapper(reader, encoding="utf-8")
+            for line in txt_stream:
+                line = line.strip()
+                if not line:
+                    continue
+                book = json.loads(line)
+                yield book
+                count += 1
+                if count >= max_count:
+                    break
+
+
+def extract_mode(mode_name, events_file, weights_file, max_count, output_path):
+    """Extract books for a single mode and write JSON output."""
+    zst_path = os.path.join(PUBLISH_DIR, events_file)
+    csv_path = os.path.join(PUBLISH_DIR, weights_file)
+
+    if not os.path.exists(zst_path):
+        print(f"  SKIP: {zst_path} not found")
+        return
+    if not os.path.exists(csv_path):
+        print(f"  SKIP: {csv_path} not found")
+        return
+
+    print(f"  Reading weights from {weights_file}...")
+    weights = read_weights(csv_path)
+
+    print(f"  Decompressing {events_file} (extracting {max_count} books)...")
+    books = []
+    total_weight = 0
+    for book in read_books(zst_path, max_count):
+        book_id = book["id"]
+        weight = weights.get(book_id, 1)
+        books.append(
+            {
+                "id": book_id,
+                "weight": weight,
+                "payoutMultiplier": book.get("payoutMultiplier", 0),
+                "events": book["events"],
+            }
+        )
+        total_weight += weight
+
+    output = {"books": books, "totalWeight": total_weight}
+
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(output, f, separators=(",", ":"))
+
+    size_mb = os.path.getsize(output_path) / (1024 * 1024)
+    print(f"  Wrote {len(books)} books -> {output_path} ({size_mb:.1f} MB)")
+
+    # Print a summary of payout distribution
+    payouts = [b["payoutMultiplier"] for b in books]
+    zero_wins = sum(1 for p in payouts if p == 0)
+    print(f"  Payout range: {min(payouts)} - {max(payouts)}")
+    print(f"  Zero-win books: {zero_wins}/{len(books)}")
+
+
+def main():
+    index_path = os.path.join(PUBLISH_DIR, "index.json")
+    if not os.path.exists(index_path):
+        sys.exit(f"index.json not found at {index_path}")
+
+    with open(index_path, "r") as f:
+        index = json.load(f)
+
+    print(f"Publish dir: {os.path.abspath(PUBLISH_DIR)}")
+    print(f"Output dir:  {os.path.abspath(WEB_SDK_MOCK_DIR)}")
+    print()
+
+    for mode in index["modes"]:
+        name = mode["name"]
+        max_count = EXTRACT_COUNTS.get(name, 100)
+        output_file = f"mock_books_{name}.json"
+        output_path = os.path.join(WEB_SDK_MOCK_DIR, output_file)
+
+        print(f"[{name}] Extracting up to {max_count} books...")
+        extract_mode(
+            mode_name=name,
+            events_file=mode["events"],
+            weights_file=mode["weights"],
+            max_count=max_count,
+            output_path=output_path,
+        )
+        print()
+
+    print("Done! Copy the JSON files to your web-sdk mockBooks directory if needed.")
+
+
+if __name__ == "__main__":
+    main()
