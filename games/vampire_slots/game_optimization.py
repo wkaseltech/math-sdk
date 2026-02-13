@@ -1,4 +1,10 @@
-"""Vampire Slots v9 — base game 50-200x is the star. Conservative scaling (DQ-proven pattern)."""
+"""Vampire Slots v10 — rare bonus design. Base game carries 70%+ RTP, bonus is an event.
+
+Target design:
+  - Base game: 70% of RTP, hr=4 (25% hit rate), avg_win=2.8x
+  - Freegame: 27% of RTP, hr=400 (~0.25% effective trigger), avg_win=108x
+  - Raw sim split: ~71% base / ~29% free (naturally aligned)
+"""
 
 from optimization_program.optimization_config import (
     ConstructScaling,
@@ -22,28 +28,28 @@ class OptimizationSetup:
                 "conditions": {
                     "0": ConstructConditions(rtp=0, av_win=0, search_conditions=0).return_dict(),
                     "freegame": ConstructConditions(
-                        rtp=0.42, hr=25, search_conditions={"symbol": "scatter"}
+                        rtp=0.27, hr=400, search_conditions={"symbol": "scatter"}
                     ).return_dict(),
-                    "basegame": ConstructConditions(hr=4.0, rtp=0.55).return_dict(),
+                    "basegame": ConstructConditions(hr=4.0, rtp=0.70).return_dict(),
                 },
                 "scaling": ConstructScaling(
                     [
-                        # Mild suppress small base wins, mild boost big ones (DQ-safe range)
-                        {"criteria": "basegame", "scale_factor": 0.7, "win_range": (0, 5), "probability": 1.0},
-                        {"criteria": "basegame", "scale_factor": 1.3, "win_range": (20, 100), "probability": 1.0},
-                        {"criteria": "basegame", "scale_factor": 1.2, "win_range": (100, 500), "probability": 1.0},
-                        # Bonus from base: suppress low, boost sweet spot
-                        {"criteria": "freegame", "scale_factor": 0.8, "win_range": (0, 50), "probability": 1.0},
+                        # Base game: suppress tiny, boost mid-range (DQ-safe range 0.7-1.3)
+                        {"criteria": "basegame", "scale_factor": 0.7, "win_range": (0, 1), "probability": 1.0},
+                        {"criteria": "basegame", "scale_factor": 1.3, "win_range": (5, 50), "probability": 1.0},
+                        {"criteria": "basegame", "scale_factor": 1.2, "win_range": (50, 200), "probability": 1.0},
+                        # Bonus: suppress low, boost sweet spot (50-200x)
+                        {"criteria": "freegame", "scale_factor": 0.8, "win_range": (0, 30), "probability": 1.0},
                         {"criteria": "freegame", "scale_factor": 1.3, "win_range": (50, 200), "probability": 1.0},
                     ]
                 ).return_dict(),
                 "parameters": ConstructParameters(
-                    num_show=2000,
-                    num_per_fence=3000,
-                    min_m2m=3,
-                    max_m2m=15,
+                    num_show=500,
+                    num_per_fence=200,
+                    min_m2m=1,
+                    max_m2m=500,
                     pmb_rtp=1.0,
-                    sim_trials=3000,
+                    sim_trials=1000,
                     test_spins=[50, 100, 200],
                     test_weights=[0.3, 0.4, 0.3],
                     score_type="rtp",
@@ -61,16 +67,16 @@ class OptimizationSetup:
                 "scaling": ConstructScaling(
                     [
                         # Suppress low bonus, boost sweet spot
-                        {"criteria": "freegame", "scale_factor": 0.7, "win_range": (0, 50), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 0.7, "win_range": (0, 30), "probability": 1.0},
                         {"criteria": "freegame", "scale_factor": 1.3, "win_range": (50, 200), "probability": 1.0},
                         {"criteria": "freegame", "scale_factor": 1.2, "win_range": (200, 500), "probability": 1.0},
                     ]
                 ).return_dict(),
                 "parameters": ConstructParameters(
-                    num_show=2000,
-                    num_per_fence=3000,
-                    min_m2m=3,
-                    max_m2m=15,
+                    num_show=500,
+                    num_per_fence=200,
+                    min_m2m=1,
+                    max_m2m=500,
                     pmb_rtp=1.0,
                     sim_trials=1000,
                     test_spins=[10, 20, 50],

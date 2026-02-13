@@ -19,14 +19,14 @@ if __name__ == "__main__":
 
     # V4 optimizer: 5000 sims then optimize
     num_sim_args = {
-        "base": 5000,
+        "base": 20000,
         "bonus": 5000,
     }
 
     run_conditions = {
         "run_sims": False,
-        "run_optimization": True,
-        "run_analysis": False,
+        "run_optimization": False,
+        "run_analysis": True,
         "run_format_checks": False,
     }
     target_modes = ["base", "bonus"]
@@ -47,10 +47,14 @@ if __name__ == "__main__":
             profiling,
         )
 
+    print(">>> generate_configs START", flush=True)
     generate_configs(gamestate)
+    print(">>> generate_configs DONE", flush=True)
 
     if run_conditions["run_optimization"]:
+        print(">>> optimizer START", flush=True)
         OptimizationExecution().run_all_modes(config, target_modes, rust_threads)
+        print(">>> optimizer DONE", flush=True)
         generate_configs(gamestate)
 
     if run_conditions["run_analysis"]:

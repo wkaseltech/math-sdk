@@ -189,7 +189,7 @@ class GameConfig(Config):
                     # ),
                     Distribution(
                         criteria="0",
-                        quota=0.45,
+                        quota=0.50,
                         conditions={
                             "reel_weights": {self.basegame_type: {"BR0": 1}},
                             "search_conditions": 0,
@@ -199,7 +199,7 @@ class GameConfig(Config):
                     ),
                     Distribution(
                         criteria="freegame",
-                        quota=0.04,
+                        quota=0.01,
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
@@ -212,7 +212,7 @@ class GameConfig(Config):
                     ),
                     Distribution(
                         criteria="basegame",
-                        quota=0.51,
+                        quota=0.49,
                         conditions={
                             "reel_weights": {self.basegame_type: {"BR0": 1}},
                             "force_wincap": False,
@@ -223,7 +223,7 @@ class GameConfig(Config):
             ),
             BetMode(
                 name="bonus",
-                cost=100,
+                cost=300,
                 rtp=self.rtp,
                 max_win=mode_maxwins["bonus"],
                 auto_close_disabled=False,

@@ -154,8 +154,8 @@ def verify_reel(data, reel_idx, name, special_syms):
 
 
 # ============ BR0 (Base Game) ============
-print("=== Generating BR0.csv (6 reels, 3 SC/col, 1 PT/col, balanced) ===")
-SC_PER_COL = 3   # Target ~4% trigger rate on 6 reels
+print("=== Generating BR0.csv (6 reels, 1 SC/col, 1 PT/col, balanced) ===")
+SC_PER_COL = 1   # Target ~0.2% trigger rate on 6 reels (super rare bonus)
 PT_PER_COL_BR0 = 1  # Rare chalice in base game
 
 br0 = [[None] * REELS for _ in range(ROWS)]
