@@ -1,4 +1,4 @@
-"""Blood Tithe v12 — cascade-forward optimizer scaling with wild support."""
+"""Blood Tithe v13 — cascade-forward optimizer scaling with wild support + wincap."""
 
 from optimization_program.optimization_config import (
     ConstructScaling,
@@ -20,6 +20,9 @@ class OptimizationSetup:
         self.game_config.opt_params = {
             "base": {
                 "conditions": {
+                    "wincap": ConstructConditions(
+                        rtp=0.01, av_win=wincaps["base"], search_conditions=wincaps["base"]
+                    ).return_dict(),
                     "0": ConstructConditions(rtp=0, av_win=0, search_conditions=0).return_dict(),
                     "freegame": ConstructConditions(
                         rtp=0.27, hr=400, search_conditions={"symbol": "scatter"}
@@ -58,6 +61,9 @@ class OptimizationSetup:
             },
             "bonus": {
                 "conditions": {
+                    "wincap": ConstructConditions(
+                        rtp=0.01, av_win=wincaps["bonus"], search_conditions=wincaps["bonus"]
+                    ).return_dict(),
                     "freegame": ConstructConditions(rtp=0.97, hr="x").return_dict(),
                 },
                 "scaling": ConstructScaling(
