@@ -163,8 +163,6 @@ class GameConfig(Config):
 
         mode_maxwins = {"base": 8000, "bonus": 8000}
 
-        # V1 VALIDATION: wincap distributions commented out for quick sims.
-        # Re-enable for production runs.
         self.bet_modes = [
             BetMode(
                 name="base",
@@ -175,20 +173,20 @@ class GameConfig(Config):
                 is_feature=True,
                 is_buybonus=False,
                 distributions=[
-                    # Distribution(
-                    #     criteria="wincap",
-                    #     quota=0.001,
-                    #     win_criteria=mode_maxwins["base"],
-                    #     conditions={
-                    #         "reel_weights": {
-                    #             self.basegame_type: {"BR0": 1},
-                    #             self.freegame_type: {"FR0": 1, "WCAP": 5},
-                    #         },
-                    #         "scatter_triggers": {3: 1, 4: 2},
-                    #         "force_wincap": True,
-                    #         "force_freegame": True,
-                    #     },
-                    # ),
+                    Distribution(
+                        criteria="wincap",
+                        quota=0.001,
+                        win_criteria=mode_maxwins["base"],
+                        conditions={
+                            "reel_weights": {
+                                self.basegame_type: {"BR0": 1},
+                                self.freegame_type: {"FR0": 1, "WCAP": 5},
+                            },
+                            "scatter_triggers": {3: 1, 4: 2},
+                            "force_wincap": True,
+                            "force_freegame": True,
+                        },
+                    ),
                     Distribution(
                         criteria="0",
                         quota=0.50,
@@ -232,20 +230,20 @@ class GameConfig(Config):
                 is_feature=True,
                 is_buybonus=True,
                 distributions=[
-                    # Distribution(
-                    #     criteria="wincap",
-                    #     quota=0.001,
-                    #     win_criteria=mode_maxwins["bonus"],
-                    #     conditions={
-                    #         "reel_weights": {
-                    #             self.basegame_type: {"BR0": 1},
-                    #             self.freegame_type: {"FR0": 1, "WCAP": 5},
-                    #         },
-                    #         "scatter_triggers": {3: 1, 4: 2},
-                    #         "force_wincap": True,
-                    #         "force_freegame": True,
-                    #     },
-                    # ),
+                    Distribution(
+                        criteria="wincap",
+                        quota=0.001,
+                        win_criteria=mode_maxwins["bonus"],
+                        conditions={
+                            "reel_weights": {
+                                self.basegame_type: {"BR0": 1},
+                                self.freegame_type: {"FR0": 1, "WCAP": 5},
+                            },
+                            "scatter_triggers": {3: 1, 4: 2},
+                            "force_wincap": True,
+                            "force_freegame": True,
+                        },
+                    ),
                     Distribution(
                         criteria="freegame",
                         quota=1.0,
