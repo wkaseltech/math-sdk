@@ -18,10 +18,10 @@ if __name__ == "__main__":
     compression = True
     profiling = False
 
-    # v13 production run: 100k sims with wincap distributions
+    # v13 production run: 100k base, 20k bonus (bonus books OOM at 100k)
     num_sim_args = {
         "base": 100000,
-        "bonus": 100000,
+        "bonus": 20000,
     }
 
     run_conditions = {
