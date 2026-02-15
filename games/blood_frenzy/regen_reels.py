@@ -1,26 +1,25 @@
-"""Generate reel strips for Blood Frenzy v1 (6x6 grid, balanced reels, sine gradient).
+"""Generate reel strips for Blood Frenzy (6x6 grid, sine gradient, per-strip seeding).
 
-BR0: Base game — 8 paying symbols + SC (scatter), no PT
-FR0: Free game — 8 paying symbols, no SC, no PT
-WCAP: Win cap — H1/H2 heavy, includes SC
+BR0: Base game — 8 paying + SC, H_A=0.2875 (tight H clustering for empowered rate)
+FR0: Free game — 8 paying, no SC, H_A=0.25 (even H spread for bonus cascades)
+WCAP: Win cap — H heavy, includes SC
 
 Symbols: L1(Peasant) L2(Merchant) L3(Noble) L4(Priest) H1(Warrior) H2(Cleric) H3(Paladin) H4(Cardinal)
 """
 import csv
 import random
 
-random.seed(42)
-
 ROWS = 120
 REELS = 6
 MIN_SC_GAP = 7
+
+# Per-strip seeds — changing one strip never affects another
+SEED_MAP = {"BR0": 1000, "FR0": 2000, "WCAP": 3000}
 
 L_SYMBOLS = ["L1", "L2", "L3", "L4"]
 H_SYMBOLS = ["H1", "H2", "H3", "H4"]
 PAYING_SYMBOLS = L_SYMBOLS + H_SYMBOLS
 
-# Balanced weights — H1 slightly more common (always active, lowest payout)
-# H4 rarest (gated behind x5, highest payout)
 BASE_WEIGHTS = {
     "L1": 1.05, "L2": 1.05, "L3": 1.05, "L4": 1.05,
     "H1": 1.10, "H2": 0.90, "H3": 0.80, "H4": 0.65,
@@ -187,7 +186,8 @@ def verify_reel(data, reel_idx, name, special_syms):
 
 
 # ============ BR0 (Base Game) ============
-print("=== Generating BR0.csv (6 reels, 3 SC/col, balanced, sine gradient) ===")
+print("=== Generating BR0.csv (6 reels, 3 SC/col, H_A=0.2875) ===")
+random.seed(SEED_MAP["BR0"])
 SC_PER_COL = 3
 
 br0 = [[None] * REELS for _ in range(ROWS)]
@@ -208,7 +208,8 @@ print("BR0.csv written!\n")
 
 
 # ============ FR0 (Free Game) ============
-print("=== Generating FR0.csv (6 reels, no specials, balanced, sine gradient) ===")
+print("=== Generating FR0.csv (6 reels, no specials, H_A=0.25) ===")
+random.seed(SEED_MAP["FR0"])
 
 fr0 = [[None] * REELS for _ in range(ROWS)]
 for reel in range(REELS):
@@ -226,6 +227,7 @@ print("FR0.csv written!\n")
 
 # ============ WCAP (Win Cap) ============
 print("=== Generating WCAP.csv (6 reels, 6 SC/col, H heavy) ===")
+random.seed(SEED_MAP["WCAP"])
 WCAP_SC_PER_COL = 6
 
 wcap = [[None] * REELS for _ in range(ROWS)]
@@ -248,10 +250,8 @@ print("WCAP.csv written!\n")
 print("=== SUMMARY ===")
 l_pct = sum(BASE_WEIGHTS[s] for s in L_SYMBOLS) / sum(BASE_WEIGHTS.values()) * 100
 h_pct = sum(BASE_WEIGHTS[s] for s in H_SYMBOLS) / sum(BASE_WEIGHTS.values()) * 100
-print(f"BR0: {REELS} reels x {ROWS} rows, {SC_PER_COL} SC/col, balanced sine gradient")
-print(f"FR0: {REELS} reels x {ROWS} rows, no specials, balanced sine gradient")
-print(f"WCAP: {REELS} reels x {ROWS} rows, {WCAP_SC_PER_COL} SC/col, H heavy")
-print(f"Paying symbols: {len(PAYING_SYMBOLS)} (4L + 4H)")
-print(f"Board composition: L ~{l_pct:.0f}%, H ~{h_pct:.0f}%")
-print(f"H weights: H1=1.10 (always active), H2=0.90, H3=0.80, H4=0.65 (rarest)")
-print(f"SINE GRADIENT — BR0: L_A=0.25 H_A=0.2875, FR0: L_A=0.25 H_A=0.25, 3 cycles per {ROWS} rows")
+print(f"Seeds: BR0={SEED_MAP['BR0']}, FR0={SEED_MAP['FR0']}, WCAP={SEED_MAP['WCAP']}")
+print(f"BR0: {REELS}x{ROWS}, {SC_PER_COL} SC/col, L_A=0.25 H_A=0.2875")
+print(f"FR0: {REELS}x{ROWS}, no specials, L_A=0.25 H_A=0.25")
+print(f"WCAP: {REELS}x{ROWS}, {WCAP_SC_PER_COL} SC/col, H heavy")
+print(f"Board: L ~{l_pct:.0f}%, H ~{h_pct:.0f}% ({len(PAYING_SYMBOLS)} symbols)")
