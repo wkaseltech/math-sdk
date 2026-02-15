@@ -1,6 +1,10 @@
 """
-Extract BookEvent sequences from compressed .jsonl.zst publish files
-and output JSON files suitable for the web-sdk DevAuthenticate mock RGS.
+Extract BookEvent sequences from sim output and combine with optimized
+weights to produce JSON files for the web-sdk DevAuthenticate mock RGS.
+
+Reads from:
+    library/books/books_{mode}.json       (uncompressed, preferred)
+    library/publish_files/books_{mode}.jsonl.zst  (compressed, fallback)
 
 Usage:
     python scripts/extract_books.py
@@ -19,14 +23,24 @@ import sys
 try:
     import zstandard as zstd
 except ImportError:
-    sys.exit("zstandard not installed. Run: pip install zstandard")
+    zstd = None
 
 # ── Config ──────────────────────────────────────────────────────────
-GAME_DIR = os.path.join(os.path.dirname(__file__), "..", "games", "dungeon_quest")
+GAME_NAME = sys.argv[1] if len(sys.argv) > 1 else "blood_tithe"
+GAME_DIR = os.path.join(os.path.dirname(__file__), "..", "games", GAME_NAME)
+BOOKS_DIR = os.path.join(GAME_DIR, "library", "books")
 PUBLISH_DIR = os.path.join(GAME_DIR, "library", "publish_files")
 
 # How many books to extract per mode
 EXTRACT_COUNTS = {"base": 500, "bonus": 100}
+
+# Map game names to web-sdk app dirs
+SDK_APP_MAP = {
+    "blood_tithe": "vampire-slots",
+    "vampire_slots": "vampire-slots",
+    "dungeon_quest": "dungeon-quest",
+}
+sdk_app = SDK_APP_MAP.get(GAME_NAME, GAME_NAME.replace("_", "-"))
 
 # Output directory (web-sdk static/mockBooks — served at runtime, no bundler issues)
 WEB_SDK_MOCK_DIR = os.path.join(
@@ -35,7 +49,7 @@ WEB_SDK_MOCK_DIR = os.path.join(
     "..",
     "web-sdk",
     "apps",
-    "dungeon-quest",
+    sdk_app,
     "static",
     "mockBooks",
 )
@@ -56,8 +70,10 @@ def read_weights(csv_path):
     return weights
 
 
-def read_books(zst_path, max_count):
+def read_books_zst(zst_path, max_count):
     """Decompress .jsonl.zst and yield up to max_count parsed book dicts."""
+    if zstd is None:
+        sys.exit("zstandard not installed. Run: pip install zstandard")
     decompressor = zstd.ZstdDecompressor()
     count = 0
     with open(zst_path, "rb") as f:
@@ -74,25 +90,45 @@ def read_books(zst_path, max_count):
                     break
 
 
+def read_books_json(json_path, max_count):
+    """Read uncompressed books JSON (list of book dicts)."""
+    with open(json_path, "r", encoding="utf-8") as f:
+        all_books = json.load(f)
+    for book in all_books[:max_count]:
+        yield book
+
+
 def extract_mode(mode_name, events_file, weights_file, max_count, output_path):
     """Extract books for a single mode and write JSON output."""
-    zst_path = os.path.join(PUBLISH_DIR, events_file)
     csv_path = os.path.join(PUBLISH_DIR, weights_file)
 
-    if not os.path.exists(zst_path):
-        print(f"  SKIP: {zst_path} not found")
-        return
     if not os.path.exists(csv_path):
         print(f"  SKIP: {csv_path} not found")
+        return
+
+    # Prefer uncompressed JSON from library/books/, fall back to .jsonl.zst
+    json_path = os.path.join(BOOKS_DIR, f"books_{mode_name}.json")
+    zst_path = os.path.join(PUBLISH_DIR, events_file)
+
+    if os.path.exists(json_path):
+        source = json_path
+        reader = read_books_json(json_path, max_count)
+        print(f"  Reading from {os.path.basename(json_path)} (uncompressed)...")
+    elif os.path.exists(zst_path):
+        source = zst_path
+        reader = read_books_zst(zst_path, max_count)
+        print(f"  Decompressing {events_file}...")
+    else:
+        print(f"  SKIP: no book data found for {mode_name}")
         return
 
     print(f"  Reading weights from {weights_file}...")
     weights = read_weights(csv_path)
 
-    print(f"  Decompressing {events_file} (extracting {max_count} books)...")
+    print(f"  Extracting {max_count} books...")
     books = []
     total_weight = 0
-    for book in read_books(zst_path, max_count):
+    for book in reader:
         book_id = book["id"]
         weight = weights.get(book_id, 1)
         books.append(
