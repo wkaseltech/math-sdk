@@ -60,6 +60,16 @@ class GameState(GameStateOverride):
                 if self._blood_moon_triggered:
                     self.blood_moon_count += 1
 
+        # Track conversion: gauge fill → empowered vampire
+        if hasattr(self, "_spin_h_clusters") and hasattr(self, "_spin_max_gauge_seg"):
+            if self._spin_max_gauge_seg >= 2 and self._spin_h_clusters > 0:
+                self.empowered_h_hits += self._spin_empowered_h
+            if self._spin_max_gauge_seg >= 2 and self._spin_h_clusters == 0:
+                self.gauge_fill_no_h += 1
+            if self._spin_h_clusters > 0 and self._spin_max_gauge_seg < 2:
+                self.unpowered_h_hits += self._spin_h_at_x1
+            self.total_h_clusters += self._spin_h_clusters
+
         self.imprint_wins()
 
     def run_freespin(self):
@@ -111,6 +121,10 @@ class GameState(GameStateOverride):
         self.bonus_count = 0
         self._bonus_triggered = False
         self._blood_moon_triggered = False
+        self.empowered_h_hits = 0     # H clusters at gauge x2+
+        self.unpowered_h_hits = 0     # H clusters at gauge x1
+        self.gauge_fill_no_h = 0      # Spins where gauge > x1 but no H cluster
+        self.total_h_clusters = 0     # All H clusters
 
         super().run_sims(betmode_copy_list, betmode, *args, **kwargs)
 
@@ -150,6 +164,16 @@ class GameState(GameStateOverride):
                 if count > 0:
                     pct = count / total_zone * 100
                     print(f"    {zone:<18}: {count:>6} ({pct:.1f}%)")
+
+        # Conversion Stats
+        if self.total_h_clusters > 0:
+            emp_pct = self.empowered_h_hits / self.total_h_clusters * 100
+            unp_pct = self.unpowered_h_hits / self.total_h_clusters * 100
+            print(f"\n  Vampire Conversion ({betmode}):")
+            print(f"    Total H clusters     : {self.total_h_clusters}")
+            print(f"    Empowered (gauge x2+): {self.empowered_h_hits} ({emp_pct:.1f}%)")
+            print(f"    Unpowered (gauge x1) : {self.unpowered_h_hits} ({unp_pct:.1f}%)")
+            print(f"    Gauge filled, no vamp : {self.gauge_fill_no_h} spins (broken promise)")
 
         # Blood Moon Rate (bonus only)
         if self.bonus_count > 0:

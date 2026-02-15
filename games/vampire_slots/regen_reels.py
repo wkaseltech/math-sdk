@@ -118,6 +118,151 @@ def build_reel(weights, special_positions, num_rows):
     return reel
 
 
+def build_reel_sine(weights, special_positions, num_rows, amplitude=0.25, cycles=3, l_symbols=None, h_symbols=None):
+    """Build reel strip with sine-wave density gradient between L and H symbols.
+
+    L density = base_weight * (1 + A * sin(2pi * cycles * pos))
+    H density = base_weight * (1 - A * sin(2pi * cycles * pos))
+
+    Produces smooth transitions between vial-heavy and vampire-heavy regions.
+    Total symbol counts preserved within ±1 of target.
+    """
+    import math
+
+    if l_symbols is None or h_symbols is None:
+        return build_reel(weights, special_positions, num_rows)
+
+    reel = [None] * num_rows
+    for pos, sym in special_positions:
+        reel[pos] = sym
+
+    empty = [i for i in range(num_rows) if reel[i] is None]
+
+    # Target counts from weights
+    total_weight = sum(weights.values())
+    target_counts = {}
+    assigned = 0
+    syms = list(weights.keys())
+    for i, sym in enumerate(syms):
+        if i == len(syms) - 1:
+            target_counts[sym] = len(empty) - assigned
+        else:
+            target_counts[sym] = round(len(empty) * weights[sym] / total_weight)
+            assigned += target_counts[sym]
+
+    # Build position-dependent probability for each empty slot
+    remaining = dict(target_counts)
+    for pos in empty:
+        t = pos / num_rows  # 0..1 circular position
+        sine_val = math.sin(2 * math.pi * cycles * t)
+
+        # Compute modulated weights at this position
+        pos_weights = {}
+        for sym in syms:
+            if remaining.get(sym, 0) <= 0:
+                continue
+            base_w = weights[sym]
+            if sym in l_symbols:
+                pos_weights[sym] = base_w * (1 + amplitude * sine_val)
+            elif sym in h_symbols:
+                pos_weights[sym] = base_w * (1 - amplitude * sine_val)
+            else:
+                pos_weights[sym] = base_w
+
+        if not pos_weights:
+            # Fallback: pick from whatever's left
+            for sym in syms:
+                if remaining.get(sym, 0) > 0:
+                    pos_weights[sym] = 1.0
+
+        # Weighted random pick
+        total = sum(pos_weights.values())
+        r = random.random() * total
+        cumulative = 0
+        chosen = list(pos_weights.keys())[-1]
+        for sym, w in pos_weights.items():
+            cumulative += w
+            if r <= cumulative:
+                chosen = sym
+                break
+
+        reel[pos] = chosen
+        remaining[chosen] -= 1
+
+    return reel
+
+
+def build_reel_zoned(weights, special_positions, num_rows, zone_size=10, l_symbols=None, h_symbols=None):
+    """Build reel strip with alternating L-heavy / H-heavy zones. (DEPRECATED — use build_reel_sine)"""
+    if l_symbols is None or h_symbols is None:
+        return build_reel(weights, special_positions, num_rows)
+
+    reel = [None] * num_rows
+    for pos, sym in special_positions:
+        reel[pos] = sym
+
+    # Calculate total target counts (same as random version)
+    remaining_slots = sum(1 for s in reel if s is None)
+    total_weight = sum(weights.values())
+    counts = {}
+    assigned = 0
+    syms = list(weights.keys())
+    for i, sym in enumerate(syms):
+        if i == len(syms) - 1:
+            counts[sym] = remaining_slots - assigned
+        else:
+            target = round(remaining_slots * weights[sym] / total_weight)
+            counts[sym] = target
+            assigned += target
+
+    # Split into L and H pools
+    l_pool = []
+    h_pool = []
+    for sym, count in counts.items():
+        if sym in l_symbols:
+            l_pool.extend([sym] * count)
+        elif sym in h_symbols:
+            h_pool.extend([sym] * count)
+    random.shuffle(l_pool)
+    random.shuffle(h_pool)
+
+    # Assign symbols to empty slots in alternating zones
+    empty = [idx for idx in range(num_rows) if reel[idx] is None]
+    l_idx, h_idx = 0, 0
+    dominant_bias = 0.70  # 70% dominant type per zone
+
+    for pos in empty:
+        zone_num = pos // zone_size
+        is_l_zone = (zone_num % 2 == 0)
+        roll = random.random()
+
+        if is_l_zone:
+            use_l = roll < dominant_bias
+        else:
+            use_l = roll >= dominant_bias
+
+        if use_l and l_idx < len(l_pool):
+            reel[pos] = l_pool[l_idx]
+            l_idx += 1
+        elif h_idx < len(h_pool):
+            reel[pos] = h_pool[h_idx]
+            h_idx += 1
+        elif l_idx < len(l_pool):
+            reel[pos] = l_pool[l_idx]
+            l_idx += 1
+
+    # Fill any remaining Nones (shouldn't happen but safety)
+    leftover = l_pool[l_idx:] + h_pool[h_idx:]
+    random.shuffle(leftover)
+    li = 0
+    for i in range(num_rows):
+        if reel[i] is None and li < len(leftover):
+            reel[i] = leftover[li]
+            li += 1
+
+    return reel
+
+
 def verify_reel(data, reel_idx, name, special_syms):
     counts = {}
     for r in range(len(data)):
@@ -166,7 +311,8 @@ for reel in range(REELS):
     while any(p in sc_pos for p in pt_pos):
         pt_pos = place_specials(ROWS, PT_PER_COL_BR0, MIN_PT_GAP)
     special_positions = [(p, "SC") for p in sc_pos] + [(p, "PT") for p in pt_pos]
-    reel_data = build_reel(BASE_WEIGHTS, special_positions, ROWS)
+    reel_data = build_reel_sine(BASE_WEIGHTS, special_positions, ROWS,
+                                amplitude=0.25, cycles=3, l_symbols=L_SYMBOLS, h_symbols=H_SYMBOLS)
     for r in range(ROWS):
         br0[r][reel] = reel_data[r]
     print(f"  Reel {reel} SC at: {sc_pos}, PT at: {pt_pos}")
@@ -187,7 +333,8 @@ fr0 = [[None] * REELS for _ in range(ROWS)]
 for reel in range(REELS):
     pt_pos = place_specials(ROWS, PT_PER_COL, MIN_PT_GAP)
     special_positions = [(p, "PT") for p in pt_pos]
-    reel_data = build_reel(FREE_WEIGHTS, special_positions, ROWS)
+    reel_data = build_reel_sine(FREE_WEIGHTS, special_positions, ROWS,
+                                amplitude=0.25, cycles=3, l_symbols=L_SYMBOLS, h_symbols=H_SYMBOLS)
     for r in range(ROWS):
         fr0[r][reel] = reel_data[r]
     print(f"  Reel {reel} PT at: {pt_pos}")
@@ -236,4 +383,4 @@ print(f"FR0: {REELS} reels x {ROWS} rows, {PT_PER_COL} PT/col, balanced")
 print(f"WCAP: {REELS} reels x {ROWS} rows, {WCAP_SC_PER_COL} SC + {WCAP_PT_PER_COL} PT/col, H1/H2 heavy")
 print(f"Paying symbols: {len(PAYING_SYMBOLS)} (4L + 4H)")
 print(f"Board composition: L ~{l_pct:.0f}%, H ~{h_pct:.0f}%")
-print(f"No clumping — pure random distribution")
+print(f"SINE GRADIENT — A=0.25, 3 cycles per 120 rows")

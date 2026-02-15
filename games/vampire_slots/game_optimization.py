@@ -34,13 +34,15 @@ class OptimizationSetup:
                 },
                 "scaling": ConstructScaling(
                     [
-                        # Base game: suppress tiny, boost mid-range (DQ-safe range 0.7-1.3)
-                        {"criteria": "basegame", "scale_factor": 0.7, "win_range": (0, 1), "probability": 1.0},
-                        {"criteria": "basegame", "scale_factor": 1.3, "win_range": (5, 50), "probability": 1.0},
+                        # Base game: hard suppress noise, max boost empowered vampire zone
+                        {"criteria": "basegame", "scale_factor": 0.5, "win_range": (0, 1), "probability": 1.0},
+                        {"criteria": "basegame", "scale_factor": 0.7, "win_range": (1, 5), "probability": 1.0},
+                        {"criteria": "basegame", "scale_factor": 1.5, "win_range": (5, 50), "probability": 1.0},
                         {"criteria": "basegame", "scale_factor": 1.2, "win_range": (50, 200), "probability": 1.0},
-                        # Bonus: suppress low, boost sweet spot (50-200x)
-                        {"criteria": "freegame", "scale_factor": 0.8, "win_range": (0, 30), "probability": 1.0},
-                        {"criteria": "freegame", "scale_factor": 1.3, "win_range": (50, 200), "probability": 1.0},
+                        # Bonus: suppress duds hard, boost cascade payoffs
+                        {"criteria": "freegame", "scale_factor": 0.5, "win_range": (0, 30), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 1.4, "win_range": (30, 100), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 1.3, "win_range": (100, 500), "probability": 1.0},
                     ]
                 ).return_dict(),
                 "parameters": ConstructParameters(
@@ -66,10 +68,10 @@ class OptimizationSetup:
                 },
                 "scaling": ConstructScaling(
                     [
-                        # Suppress low bonus, boost sweet spot
-                        {"criteria": "freegame", "scale_factor": 0.7, "win_range": (0, 30), "probability": 1.0},
-                        {"criteria": "freegame", "scale_factor": 1.3, "win_range": (50, 200), "probability": 1.0},
-                        {"criteria": "freegame", "scale_factor": 1.2, "win_range": (200, 500), "probability": 1.0},
+                        # Bonus mode: suppress disappointing bonuses, boost cascade payoffs
+                        {"criteria": "freegame", "scale_factor": 0.5, "win_range": (0, 30), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 1.4, "win_range": (30, 100), "probability": 1.0},
+                        {"criteria": "freegame", "scale_factor": 1.3, "win_range": (100, 500), "probability": 1.0},
                     ]
                 ).return_dict(),
                 "parameters": ConstructParameters(

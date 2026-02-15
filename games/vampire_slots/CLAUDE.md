@@ -1,6 +1,6 @@
 # Vampire Slots — Game Reference
 
-6x6 cluster cascade slot with a Blood Gauge multiplier system. Base game carries 72% of RTP through cascading + gauge interaction. Bonus is super rare (0.25% trigger, ~108x avg) but devastating. Buy bonus at 300x.
+6x6 cluster cascade slot with a Blood Gauge multiplier system. Base game carries 72% of RTP through cascading + gauge interaction. Bonus is super rare (0.25% trigger, ~291x avg) but devastating. Buy bonus at 300x. Sine-wave reel gradients + cascade-forward optimizer scaling (v11).
 
 ## Visual Direction
 
@@ -16,14 +16,25 @@
 
 **Blood Moon:** Screen tint shifts to deep crimson. Gauge vessel cracks fully, blood rains from above. Everything at max intensity — locked x10, escalating multipliers, vampires at full power.
 
-## How It Plays
+## How To Play
 
-1. Player spins. 6x6 board fills from 8 paying symbols (4 L vials, 4 H vampires) + SC (coffin scatter) + PT (chalice token).
-2. Clusters of 3+ matching symbols pay and explode. New symbols fall in. Repeat until no clusters.
-3. **L clusters fill the Blood Gauge.** Each L symbol in a cluster adds 5% to the gauge (base game). Gauge resets every new spin.
-4. **H clusters pay base value x gauge multiplier.** The gauge has 5 segments: x1 (0-20%), x2 (20-40%), x3 (40-60%), x5 (60-80%), x10 (80-100%).
-5. **L-first evaluation:** Within each tumble, L clusters resolve first (filling gauge), then H clusters resolve with the NEW multiplier. This means a single cascade step can fill gauge AND apply it.
-6. PT (chalice) on board absorbs nearby L symbols for bonus gauge fill (2.5% per L absorbed in base).
+**Clusters:** Connect 3 or more matching symbols horizontally or vertically to form a cluster. Winning clusters are removed and new symbols fall in from above. Cascades continue until no new clusters form.
+
+**Cluster Payouts:** Payouts are based on cluster size tiers, not individual symbol count. A cluster of 3 pays the same as a cluster of 5 — what matters is which tier you reach.
+- **3–5 symbols** (Tier 1) — Small win
+- **6–10 symbols** (Tier 2) — Medium win
+- **11–18 symbols** (Tier 3) — Large win
+- **19–36 symbols** (Tier 4) — Massive win
+
+**Blood Gauge:** Vial symbols (L) fill the Blood Gauge when they cluster. Each L symbol adds 5% to the gauge. The gauge has 5 multiplier segments — the higher it fills, the more Vampire symbols (H) pay. Vials resolve first in every cascade, so the gauge can fill and empower vampires in the same tumble. The gauge resets at the start of each new spin.
+
+**Chalice:** When a Chalice appears, it absorbs nearby vial symbols and feeds their blood directly into the gauge.
+
+**Coffin Scatter:** Land 3 or more Coffin scatters to trigger the Free Spins bonus.
+
+**Free Spins:** During Free Spins, the Blood Gauge persists between spins — it never resets. The fill rate is slower (0.12% per L symbol), but it builds across every spin.
+
+**Blood Moon:** If the gauge reaches 100% during Free Spins, Blood Moon activates — 3 extra spins locked at x10 multiplier, escalating +2x with every cascade.
 
 ## The Feeling
 
@@ -47,30 +58,45 @@ If gauge hits 100% during bonus: Blood Moon activates. +3 extra spins locked at 
 | Base RTP share | 70% (72% of total) |
 | Bonus RTP share | 27% (28% of total) |
 | Bonus trigger | 0.25% (1 in 400) |
-| Bonus avg payout | ~108x |
+| Bonus avg payout | ~291x (v11) |
 | Buy bonus cost | 300x |
-| Effective dead | 67% |
-| Effective basegame | 33% |
+| Effective dead | 75% |
+| Effective basegame | 25% |
+| Cascade depth | 1.17 avg (sine reels) |
+| Empowered H rate | 84% |
+| Broken promise | ~12% of hitting spins |
 | Gauge max multiplier | x10 |
 
 ## Paytable
 
-Cluster tiers: t1=(3-5), t2=(6-10), t3=(11-18), t4=(19-36). H symbols pay base x gauge multiplier.
+All values shown as multiplier of bet. Vampire (H) payouts are further multiplied by the Blood Gauge level.
 
-| Symbol | t1 | t2 | t3 | t4 | Role |
-|--------|-----|------|-------|--------|------|
-| L1 (J) | 0.02 | 0.08 | 0.30 | 1.00 | Gauge fuel |
-| L2 (Q) | 0.03 | 0.12 | 0.50 | 1.50 | Gauge fuel |
-| L3 (K) | 0.04 | 0.15 | 0.70 | 2.00 | Gauge fuel |
-| L4 (A) | 0.05 | 0.20 | 1.00 | 3.00 | Gauge fuel |
-| H4 (Feral) | 0.50 | 2.50 | 10.00 | 25.00 | Payload |
-| H3 (Knight) | 0.80 | 4.00 | 15.00 | 40.00 | Payload |
-| H2 (Countess) | 1.20 | 6.00 | 25.00 | 60.00 | Payload |
-| H1 (Elder) | 2.50 | 10.00 | 40.00 | 120.00 | Payload |
-| SC (Coffin) | — | — | — | — | Bonus trigger (3+) |
-| PT (Chalice) | — | — | — | — | L absorb for gauge |
+### Vials — Fill the Blood Gauge
 
-At x10 gauge: H1 t4 = 1,200x. With cascading, multiple H clusters can hit per spin.
+| Symbol | 3–5 | 6–10 | 11–18 | 19–36 |
+|--------|------|------|-------|-------|
+| J Vial | 0.02x | 0.08x | 0.30x | 1.00x |
+| Q Vial | 0.03x | 0.12x | 0.50x | 1.50x |
+| K Vial | 0.04x | 0.15x | 0.70x | 2.00x |
+| A Vial | 0.05x | 0.20x | 1.00x | 3.00x |
+
+### Vampires — Multiplied by Blood Gauge
+
+| Symbol | 3–5 | 6–10 | 11–18 | 19–36 |
+|--------|------|------|-------|-------|
+| Feral | 0.50x | 2.50x | 10.00x | 25.00x |
+| Knight | 0.80x | 4.00x | 15.00x | 40.00x |
+| Countess | 1.20x | 6.00x | 25.00x | 60.00x |
+| Elder | 2.50x | 10.00x | 40.00x | 120.00x |
+
+At x10 gauge, an Elder cluster of 19+ pays **1,200x** your bet.
+
+### Special Symbols
+
+| Symbol | Function |
+|--------|----------|
+| Coffin (Scatter) | 3+ triggers Free Spins |
+| Chalice | Absorbs nearby vials into the Blood Gauge |
 
 ## Gauge Segments
 

@@ -190,6 +190,20 @@ class GameExecutables(GameCalculations):
         if l_clusters or h_clusters:
             emit_cluster_info(self, l_clusters, h_clusters)
 
+        # Track conversion diagnostics
+        if hasattr(self, "_spin_h_clusters"):
+            h_mult = self.get_current_h_multiplier()
+            h_count = len(h_clusters)
+            self._spin_h_clusters += h_count
+            seg = self._gauge_to_segment(self.gauge_level) if hasattr(self, "_gauge_to_segment") else 1
+            if seg > self._spin_max_gauge_seg:
+                self._spin_max_gauge_seg = seg
+            if h_count > 0:
+                if h_mult > 1:
+                    self._spin_empowered_h += h_count
+                else:
+                    self._spin_h_at_x1 += h_count
+
         # Track Blood Moon cascades for escalation
         if self.blood_moon_active and self.win_data["totalWin"] > 0:
             self.blood_moon_cascade_count += 1

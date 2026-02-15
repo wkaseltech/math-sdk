@@ -11,6 +11,11 @@ class GameStateOverride(GameExecutables):
         self.tumble_win = 0
         # Base game: gauge resets at start of every new spin
         self.reset_gauge()
+        # Per-spin conversion tracking
+        self._spin_h_clusters = 0
+        self._spin_empowered_h = 0
+        self._spin_h_at_x1 = 0
+        self._spin_max_gauge_seg = 1
 
     def reset_fs_spin(self):
         super().reset_fs_spin()
