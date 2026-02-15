@@ -11,6 +11,14 @@ class GameStateOverride(GameExecutables):
         self.tumble_win = 0
         # Base game: gauge resets at start of every new spin
         self.reset_gauge()
+        self._reset_emo_spin()
+
+    def _reset_emo_spin(self):
+        """Reset per-spin emotional metric state."""
+        self._emo_tumble_idx = 0
+        self._emo_pre_seg = self._gauge_to_segment(self.gauge_level) if hasattr(self, '_gauge_to_segment') else 1
+        self._emo_bp_crossed = {}
+        self._emo_first_h_at_bp = {}
 
     def reset_fs_spin(self):
         super().reset_fs_spin()

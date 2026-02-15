@@ -140,6 +140,24 @@ class GameExecutables(GameCalculations):
                 if hasattr(self, "gating_counts"):
                     self.gating_counts[key] = self.gating_counts.get(key, 0) + 1
 
+        # --- Emotional metrics: per-tumble tracking ---
+        if hasattr(self, '_emo_tumble_idx'):
+            self._emo_tumble_idx += 1
+            post_seg = self._gauge_to_segment(self.gauge_level) if hasattr(self, '_gauge_to_segment') else 1
+
+            # Detect new breakpoint crossings (seg 2+ = x2+)
+            for seg in range(max(2, self._emo_pre_seg + 1), post_seg + 1):
+                if seg not in self._emo_bp_crossed:
+                    self._emo_bp_crossed[seg] = self._emo_tumble_idx
+
+            # Detect first H fire after each crossed breakpoint
+            if len(h_clusters) > 0 and post_seg >= 2:
+                for seg in list(self._emo_bp_crossed):
+                    if seg not in self._emo_first_h_at_bp:
+                        self._emo_first_h_at_bp[seg] = self._emo_tumble_idx
+
+            self._emo_pre_seg = post_seg
+
         # Track frenzy cascades for escalation
         if self.frenzy_active and self.win_data["totalWin"] > 0:
             self.frenzy_cascade_count += 1

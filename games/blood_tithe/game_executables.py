@@ -194,6 +194,22 @@ class GameExecutables(GameCalculations):
         if l_clusters or h_clusters:
             emit_cluster_info(self, l_clusters, h_clusters)
 
+        # --- Emotional metrics: per-tumble tracking ---
+        if hasattr(self, '_emo_tumble_idx'):
+            self._emo_tumble_idx += 1
+            post_seg = self._gauge_to_segment(self.gauge_level) if hasattr(self, '_gauge_to_segment') else 1
+
+            for seg in range(max(2, self._emo_pre_seg + 1), post_seg + 1):
+                if seg not in self._emo_bp_crossed:
+                    self._emo_bp_crossed[seg] = self._emo_tumble_idx
+
+            if len(h_clusters) > 0 and post_seg >= 2:
+                for seg in list(self._emo_bp_crossed):
+                    if seg not in self._emo_first_h_at_bp:
+                        self._emo_first_h_at_bp[seg] = self._emo_tumble_idx
+
+            self._emo_pre_seg = post_seg
+
         # Track Blood Moon cascades for escalation
         if self.blood_moon_active and self.win_data["totalWin"] > 0:
             self.blood_moon_cascade_count += 1
