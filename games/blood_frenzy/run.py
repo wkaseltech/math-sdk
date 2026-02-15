@@ -17,14 +17,15 @@ if __name__ == "__main__":
     compression = True
     profiling = False
 
+    # Diagnostics run: 10k base, 5k bonus (emotional metrics validation)
     num_sim_args = {
-        "base": 100000,
-        "bonus": 20000,
+        "base": 10000,
+        "bonus": 5000,
     }
 
     run_conditions = {
         "run_sims": True,
-        "run_optimization": True,
+        "run_optimization": False,
         "run_analysis": False,
         "run_format_checks": False,
     }
