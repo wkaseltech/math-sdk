@@ -15,6 +15,13 @@ class ConstructScaling:
                     assert isinstance(scaling[cond], str), "Enter string type for criteria condition"
                 elif cond in ["scale_factor", "probability"]:
                     assert isinstance(scaling[cond], Union[float, int]), "Enter float/int type for value."
+                    if cond == "scale_factor":
+                        if scaling[cond] < 0.5 or scaling[cond] > 1.5:
+                            raise ValueError(
+                                f"scale_factor={scaling[cond]} for criteria='{scaling['criteria']}' "
+                                f"win_range={scaling['win_range']} is outside safe range [0.5, 1.5]. "
+                                f"Extreme scaling causes optimizer issues — adjust win_range or RTP split instead."
+                            )
                     if cond == "probability" and scaling[cond] > 1:
                         warn("probabilities > 1 will have no effect on selection.")
                 elif cond == "win_range":
