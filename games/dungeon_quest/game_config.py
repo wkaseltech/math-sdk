@@ -26,60 +26,61 @@ class GameConfig(Config):
         self.rtp = 0.9700
         self.construct_paths()
 
-        # Grid: 4 columns × 6 rows = 24 cells
-        self.num_reels = 4
-        self.num_rows = [6] * self.num_reels
+        # Grid: 5 columns × 7 rows = 35 cells
+        self.num_reels = 5
+        self.num_rows = [7] * self.num_reels
 
-        # Cluster size tiers (scaled for 24-cell grid, minimum cluster = 3)
-        t1 = (3, 4)      # Small cluster
-        t2 = (5, 7)      # Medium cluster
-        t3 = (8, 11)     # Large cluster
-        t4 = (12, 24)    # Massive cluster
+        # Cluster size tiers (scaled for 35-cell grid, minimum cluster = 4)
+        t1 = (4, 8)      # Small cluster
+        t2 = (9, 15)     # Medium cluster
+        t3 = (16, 24)    # Large cluster
+        t4 = (25, 35)    # Massive cluster
 
         # Paytable: 7 symbols (4 high, 3 low)
         # Values are multipliers on the bet BEFORE XP multiplier is applied
+        # Scaled ~1.5x from min-3 values to compensate for lower hit rate
         pay_group = {
             # LICH (H1) — Undead sorcerer king, rarest, biggest payout
-            (t1, "H1"): 3.0,
-            (t2, "H1"): 8.0,
-            (t3, "H1"): 25.0,
-            (t4, "H1"): 60.0,
+            (t1, "H1"): 2.5,
+            (t2, "H1"): 6.0,
+            (t3, "H1"): 20.0,
+            (t4, "H1"): 45.0,
 
             # DRAGON (H2) — Fearsome beast
-            (t1, "H2"): 2.0,
-            (t2, "H2"): 5.0,
-            (t3, "H2"): 15.0,
-            (t4, "H2"): 40.0,
+            (t1, "H2"): 1.5,
+            (t2, "H2"): 4.0,
+            (t3, "H2"): 12.5,
+            (t4, "H2"): 30.0,
 
             # LIZARDMAN (H3) — Scaled warrior
-            (t1, "H3"): 1.5,
-            (t2, "H3"): 4.0,
-            (t3, "H3"): 10.0,
-            (t4, "H3"): 30.0,
+            (t1, "H3"): 1.0,
+            (t2, "H3"): 3.0,
+            (t3, "H3"): 7.5,
+            (t4, "H3"): 22.5,
 
             # GOBLIN (H4) — Armed and cunning
-            (t1, "H4"): 1.0,
-            (t2, "H4"): 3.0,
-            (t3, "H4"): 8.0,
-            (t4, "H4"): 25.0,
+            (t1, "H4"): 0.75,
+            (t2, "H4"): 2.5,
+            (t3, "H4"): 6.0,
+            (t4, "H4"): 17.5,
 
             # SKELETON (L1) — Undead warrior
-            (t1, "L1"): 0.5,
-            (t2, "L1"): 1.5,
-            (t3, "L1"): 5.0,
-            (t4, "L1"): 15.0,
+            (t1, "L1"): 0.4,
+            (t2, "L1"): 1.25,
+            (t3, "L1"): 4.0,
+            (t4, "L1"): 10.0,
 
             # SPIDER (L2) — Dungeon crawler
-            (t1, "L2"): 0.3,
-            (t2, "L2"): 1.0,
-            (t3, "L2"): 3.0,
-            (t4, "L2"): 10.0,
+            (t1, "L2"): 0.25,
+            (t2, "L2"): 0.75,
+            (t3, "L2"): 2.5,
+            (t4, "L2"): 7.5,
 
             # BAT (L3) — Weakest enemy
-            (t1, "L3"): 0.2,
-            (t2, "L3"): 0.5,
-            (t3, "L3"): 2.0,
-            (t4, "L3"): 6.0,
+            (t1, "L3"): 0.15,
+            (t2, "L3"): 0.4,
+            (t3, "L3"): 1.5,
+            (t4, "L3"): 4.5,
         }
         self.paytable = self.convert_range_table(pay_group)
 
@@ -97,6 +98,7 @@ class GameConfig(Config):
                 4: 10,   # 4 keys = 10 free spins
                 5: 12,   # 5 keys = 12 free spins
                 6: 15,   # 6 keys = 15 free spins
+                7: 18,   # 7 keys = 18 free spins
             },
             self.freegame_type: {},  # Empty — potion retrigger is custom, not native
         }
@@ -113,20 +115,23 @@ class GameConfig(Config):
             2: 2,    # Level 2: ×2
             3: 3,    # Level 3: ×3
             4: 5,    # Level 4: ×5
-            5: 10,   # Level 5: ×10 (MAX LEVEL)
+            5: 10,   # Level 5: ×10
+            6: 20,   # Level MAX: ×20
         }
 
         # Cumulative cluster count thresholds to reach each level
         self.xp_thresholds = {
-            2: 1,    # 1 cluster → Level 2
-            3: 3,    # 3 clusters → Level 3
-            4: 5,    # 5 clusters → Level 4
-            5: 8,    # 8 clusters → Level 5
+            2: 2,    # 2 clusters → Level 2
+            3: 5,    # 5 clusters → Level 3
+            4: 9,    # 9 clusters → Level 4
+            5: 15,   # 15 clusters → Level 5
+            6: 22,   # 22 clusters → Level MAX
         }
 
-        # Level 5 escalation: multiplier keeps growing with each additional cluster
-        self.level5_base_multiplier = 10
-        self.level5_escalation_per_cluster = 3
+        # Max level escalation: multiplier keeps growing with each additional cluster
+        self.max_level = 6
+        self.max_level_base_multiplier = 20
+        self.max_level_escalation_per_cluster = 3
 
         # Regular symbols list (for potion replacement during bonus)
         self.regular_symbols = ["H1", "H2", "H3", "H4", "L1", "L2", "L3"]
@@ -169,7 +174,7 @@ class GameConfig(Config):
                     ),
                     Distribution(
                         criteria="freegame",
-                        quota=0.1,
+                        quota=0.04,
                         conditions={
                             "reel_weights": {
                                 self.basegame_type: {"BR0": 1},
@@ -181,8 +186,18 @@ class GameConfig(Config):
                         },
                     ),
                     Distribution(
+                        criteria="0",
+                        quota=0.50,
+                        win_criteria=0.0,
+                        conditions={
+                            "reel_weights": {self.basegame_type: {"BR0": 1}},
+                            "force_wincap": False,
+                            "force_freegame": False,
+                        },
+                    ),
+                    Distribution(
                         criteria="basegame",
-                        quota=0.889,
+                        quota=0.459,
                         conditions={
                             "reel_weights": {self.basegame_type: {"BR0": 1}},
                             "force_wincap": False,

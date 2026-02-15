@@ -12,6 +12,7 @@ HERO_POSES = {
     3: "bonus_stance",
     4: "boss_stance",
     5: "boss_stance",
+    6: "boss_stance",  # Level MAX
 }
 
 
@@ -26,7 +27,7 @@ def calculate_level(cluster_count, config):
 
 def xp_to_next_level(cluster_count, current_level, config):
     """Return clusters remaining until next level, or 0 if max."""
-    if current_level >= 5:
+    if current_level >= config.max_level:
         return 0
     next_threshold = config.xp_thresholds.get(current_level + 1, 0)
     return max(0, next_threshold - cluster_count)
@@ -40,7 +41,7 @@ def emit_update_xp(gamestate):
         "clusterCount": gamestate.xp_cluster_count,
         "level": gamestate.xp_level,
         "multiplier": gamestate.xp_multiplier,
-        "escalating": gamestate.xp_level >= 5,
+        "escalating": gamestate.xp_level >= gamestate.config.max_level,
         "xpToNextLevel": xp_to_next_level(
             gamestate.xp_cluster_count, gamestate.xp_level, gamestate.config
         ),

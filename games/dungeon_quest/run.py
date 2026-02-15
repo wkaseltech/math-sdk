@@ -14,17 +14,17 @@ if __name__ == "__main__":
     num_threads = 5
     rust_threads = 10
     batching_size = 50000
-    compression = False
+    compression = True
     profiling = False
 
     num_sim_args = {
-        "base": 10000,
-        "bonus": 10000,
+        "base": 100000,
+        "bonus": 100000,
     }
 
     run_conditions = {
         "run_sims": True,
-        "run_optimization": False,
+        "run_optimization": True,
         "run_analysis": False,
         "run_format_checks": False,
     }

@@ -39,12 +39,12 @@ class GameExecutables(GameCalculations):
                 if new_level == 5 and old_level < 5:
                     emit_music_change(self, "boss_room_loop", "level5")
 
-            # Calculate multiplier — escalates at Level 5
-            if self.xp_level < 5:
+            # Calculate multiplier — escalates at max level
+            if self.xp_level < self.config.max_level:
                 self.xp_multiplier = self.config.xp_multiplier_tiers[self.xp_level]
             else:
-                clusters_beyond = self.xp_cluster_count - self.config.xp_thresholds[5]
-                self.xp_multiplier = self.config.level5_base_multiplier + (clusters_beyond * self.config.level5_escalation_per_cluster)
+                clusters_beyond = self.xp_cluster_count - self.config.xp_thresholds[self.config.max_level]
+                self.xp_multiplier = self.config.max_level_base_multiplier + (clusters_beyond * self.config.max_level_escalation_per_cluster)
 
             emit_update_xp(self)
 

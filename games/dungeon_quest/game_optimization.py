@@ -24,9 +24,10 @@ class OptimizationSetup:
                         rtp=0.01, av_win=wincaps["base"], search_conditions=wincaps["base"]
                     ).return_dict(),
                     "freegame": ConstructConditions(
-                        rtp=0.55, hr=200, search_conditions={"symbol": "scatter"}
+                        rtp=0.38, hr=200, search_conditions={"symbol": "scatter"}
                     ).return_dict(),
-                    "basegame": ConstructConditions(hr=1, rtp=0.41).return_dict(),
+                    "0": ConstructConditions(rtp=0, av_win=0, search_conditions=0).return_dict(),
+                    "basegame": ConstructConditions(hr=2.0, rtp=0.58).return_dict(),
                 },
                 "scaling": ConstructScaling(
                     [
@@ -59,8 +60,8 @@ class OptimizationSetup:
                 ).return_dict(),
                 "distribution_bias": ConstructFenceBias(
                     applied_criteria=["basegame"],
-                    bias_ranges=[(0.0, 0.5)],
-                    bias_weights=[0.6],
+                    bias_ranges=[(0.5, 1.5)],
+                    bias_weights=[0.4],
                 ).return_dict(),
             },
             "bonus": {
@@ -74,8 +75,14 @@ class OptimizationSetup:
                     [
                         {
                             "criteria": "freegame",
-                            "scale_factor": 0.9,
-                            "win_range": (20, 50),
+                            "scale_factor": 0.3,
+                            "win_range": (0, 10),
+                            "probability": 1.0,
+                        },
+                        {
+                            "criteria": "freegame",
+                            "scale_factor": 0.5,
+                            "win_range": (10, 30),
                             "probability": 1.0,
                         },
                         {
